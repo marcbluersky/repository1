@@ -1,0 +1,56 @@
+<button class='button white' id='connect-button'>1. Connectez vous à Metamask</button>
+<br><button class='button white' id='send-button'>2. Payez 57.10 € en ETH</button>
+
+ 	<p>
+	Pour payer avec d'autres Cryptos: Envoyez le montant équivalent au prix en euro sur mon wallet et envoyez moi un email pour confirmer.
+<br><strong>USDC, USDT, ETH, BNB, BUSD (Blockchain Mainnet)</strong>: 0x5f2a2673f862be93103008cc2f5ed534a05dc207
+<br><strong>BTC</strong>: 16CAxPRWWozmjwdVwuL3SVPFueWbN7dzYr</p></div>
+
+
+<script>
+		let eth_eur_fx = 1800;
+		let price_eur = 57.10;
+       let account;
+	   let amount = '0x'+(price_eur/eth_eur_fx*10**18).toString(16);
+	   console.log('amount:'+amount);
+      document.getElementById('connect-button').addEventListener('click', event => {
+        let button = event.target;
+        ethereum.request({method: 'eth_requestAccounts'}).then(accounts => {
+          account = accounts[0];
+          console.log(account);
+          button.textContent = account;
+
+          ethereum.request({method: 'eth_getBalance' , params: [account, 'latest']}).then(result => {
+            console.log('balance: '+ result);
+            let wei = parseInt(result,16);
+			console.log('wei: ' + wei);
+            let balance = wei / (10**18);
+            console.log(balance + ' ETH');
+          });
+        });
+      });
+	  
+        document.getElementById('send-button').addEventListener('click', event =>{
+          let transactionParam = {
+            to: '0x5f2a2673f862be93103008cc2f5ed534a05dc207',
+            from: account,
+            value: amount
+          };
+          
+          ethereum.request({method: 'eth_sendTransaction', params:[transactionParam]}).then(txhash => {
+            console.log(txhash);
+            checkTransactionconfirmation(txhash).then(r => alert(r));
+          });
+		  		  
+        });
+
+	   function checkTransactionconfirmation(txhash) {
+        let checkTransactionLoop = () => {
+          return ethereum.request({method:'eth_getTransactionReceipt',params:[txhash]}).then(r => {
+            if(r !=null) return 'confirmed';
+            else return checkTransactionLoop();
+          });
+        };
+        return checkTransactionLoop();
+      }
+    </script> 
